@@ -11,9 +11,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.events.OnListViewScrollEvent;
-import rx.android.observables.AndroidObservable;
-import rx.android.observables.ViewObservable;
+import rx.android.content.ContentObservable;
+import rx.android.widget.OnListViewScrollEvent;
+import rx.android.widget.WidgetObservable;
 import rx.functions.Action1;
 
 import static rx.android.schedulers.AndroidSchedulers.mainThread;
@@ -54,22 +54,22 @@ public class ListFragmentActivity extends Activity {
             ListView listView = (ListView) view.findViewById(android.R.id.list);
             listView.setAdapter(adapter);
 
-            AndroidObservable.bindFragment(this, SampleObservables.numberStrings(1, 500, 100))
+            ContentObservable.bindFragment(this, SampleObservables.numberStrings(1, 500, 100))
                 .observeOn(mainThread())
                 .lift(new BindAdapter())
                 .subscribe();
 
             final ProgressBar progressBar = (ProgressBar) view.findViewById(android.R.id.progress);
-            AndroidObservable.bindFragment(this, ViewObservable.listScrollEvents(listView))
+            ContentObservable.bindFragment(this, WidgetObservable.listScrollEvents(listView))
                 .subscribe(new Action1<OnListViewScrollEvent>() {
                     @Override
                     public void call(OnListViewScrollEvent event) {
-                        if (event.totalItemCount == 0) {
+                        if (event.totalItemCount() == 0) {
                             return;
                         }
 
                         int progress =
-                            (int) ((100.0 * (event.firstVisibleItem + event.visibleItemCount)) / event.totalItemCount);
+                            (int) ((100.0 * (event.firstVisibleItem() + event.visibleItemCount())) / event.totalItemCount());
                         progressBar.setProgress(progress);
                     }
                 });

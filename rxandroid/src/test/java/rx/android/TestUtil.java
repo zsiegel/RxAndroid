@@ -16,15 +16,39 @@ package rx.android;
 import android.view.View;
 
 import org.robolectric.Robolectric;
+import org.robolectric.util.Scheduler;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+
+import rx.Observable;
+import rx.Subscriber;
 
 public class TestUtil {
-
     private TestUtil() {
-        throw new AssertionError("Utility class");
+        throw new AssertionError("No instances");
     }
+
+    static public final String STRING_EXPECTATION = "Hello";
 
     public static View createView() {
         return new View(Robolectric.application);
+    }
+
+    public static Observable<String> atBackgroundThread(final CountDownLatch done) {
+        return Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                Executors.newSingleThreadExecutor().submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        subscriber.onNext(STRING_EXPECTATION);
+                        subscriber.onCompleted();
+                        done.countDown();
+                    }
+                });
+            }
+        });
     }
 
 }
